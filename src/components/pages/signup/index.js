@@ -1,6 +1,6 @@
 import "./styles.css";
 
-function Signup() {
+const  Signup = () => {
   const input = document.querySelector('.placeholder');
   const button = document.querySelector('.iniciar');
   const form = document.querySelector('.formulario');
@@ -19,7 +19,7 @@ const handleSubmite = (event) =>{
  event.preventDefault();
 
 localStorage.setItem('user', input.value);
-window.location = 'components/pages/mainscreen';
+window.location = 'mainscreen';
 }
 
 input.addEventListener('input', validateInput);

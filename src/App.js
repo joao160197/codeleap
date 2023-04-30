@@ -1,4 +1,4 @@
-import Signup from  './components/signup';
+import Signup from  './components/pages/signup';
 import Mainscreen from './components/pages/mainscreen'
 
 
