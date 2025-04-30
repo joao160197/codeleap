@@ -3,6 +3,7 @@ import { MdDeleteForever } from "react-icons/md";
 import { BiEdit } from "react-icons/bi";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 
 const Mainscreen = () => {
   const [postPlaceholder, setPostPlaceholder] = useState("");
@@ -11,6 +12,7 @@ const Mainscreen = () => {
   const [editingEntry, setEditingEntry] = useState(null);
   const [deletingEntry, setDeletingEntry] = useState(null);
   const words = ["first", "second", "third", "fourth", "fifth"];
+  const [likes, setLikes] = useState({});
 
   const currentUser = localStorage.getItem("currentUser");
   const API_URL = "https://dev.codeleap.co.uk/careers/";
@@ -91,6 +93,14 @@ const Mainscreen = () => {
     return minutes;
   };
 
+  const handleLike = (postID) => {
+     setLikes((prevLikes)=>
+    ({
+      ...prevLikes,
+      [postID]: prevLikes[postID] === true ? false : true
+    }))
+  };
+
   return (
     <body>
       <header>
@@ -154,6 +164,12 @@ const Mainscreen = () => {
               </p>
                 <h2>{entry.title}</h2>
                 <p>{entry.content}</p>
+                <div className="like-section">
+                  <button className="like-button" onClick={() => handleLike(entry.id)}>
+                    {likes[entry.id] ? <AiFillHeart color="red" /> : <AiOutlineHeart />}
+                  </button>
+                  <span className="likes">{likes[entry.id] ? 1 : 0} {likes[entry.id] ? "" : ""}</span>
+                </div>
               </div>
             </div>
           ))}

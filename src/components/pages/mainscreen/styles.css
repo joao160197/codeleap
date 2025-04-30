@@ -277,6 +277,27 @@ h2 {
   border-radius: 0 0 10px 10px;
 }
 
+.like-section {
+  display: flex;
+  align-items: center;
+  gap:8px;
+  margin-top: 10px;
+}
+
+.like-section button{
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 19px;;
+}
+
+.likes{
+  font-size: 16px;
+  color: #141414;
+  font-family: "Roboto", sans-serif;
+  margin-top: -0.5%;
+  }
+
 .post-teste {
   background: #7695ec !important;
   color: #ffff;
