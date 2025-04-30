@@ -2,90 +2,94 @@ import "./styles.css";
 import { MdDeleteForever } from "react-icons/md";
 import { BiEdit } from "react-icons/bi";
 import React, { useState, useEffect } from "react";
-import { useLocation } from 'react-router-dom';
+import axios from "axios";
 
 const Mainscreen = () => {
   const [postPlaceholder, setPostPlaceholder] = useState("");
   const [contentPlaceholder, setContentPlaceholder] = useState("");
   const [entries, setEntries] = useState([]);
-  const [postCount, setPostCount] = useState(0);
-  const [editingEntry, setEditingEntry] = useState({
-    post: "",
-    content: "",
-    createdAt: null,
-    createdBy: ""
-  });
-  const [editingEntryIndex, setEditingEntryIndex] = useState(-1);
+  const [editingEntry, setEditingEntry] = useState(null);
   const [deletingEntry, setDeletingEntry] = useState(null);
   const words = ["first", "second", "third", "fourth", "fifth"];
 
-  const location = useLocation();
-  const currentUser = location.state?.createdBy;
+  const currentUser = localStorage.getItem("currentUser");
+  const API_URL = "https://dev.codeleap.co.uk/careers/";
 
   useEffect(() => {
-    const storedEntries = localStorage.getItem("entries");
-    if (storedEntries) {
-      setEntries(JSON.parse(storedEntries));
-    }
+    fetchPosts();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("entries", JSON.stringify(entries));
-  }, [entries]);
-
-  const addEntry = () => {
-    const newEntry = {
-      post: postPlaceholder,
-      content: contentPlaceholder,
-      createdAt: new Date(),
-      createdBy: currentUser,
-    };
-
-    setEntries([...entries, newEntry]);
-    setPostPlaceholder("");
-    setContentPlaceholder("");
-    setPostCount(postCount + 1);
+  const fetchPosts = async () => {
+    try {
+      const response = await axios.get(API_URL);
+      const sorted = response.data.results.sort(
+        (a, b) => new Date(b.created_datetime) - new Date(a.created_datetime)
+      );
+      setEntries(sorted);
+    } catch (error) {
+      console.error("Erro ao buscar posts:", error);
+    }
   };
 
-  const getMinutesPassed = (createdAt) => {
-    const currentTime = new Date();
-    const timeDiff = currentTime - createdAt;
-    const minutesPassed = Math.floor(timeDiff / (1000 * 60));
-    return minutesPassed;
+  const addEntry = async () => {
+    try {
+      const response = await axios.post(API_URL, {
+        username: currentUser,
+        title: postPlaceholder,
+        content: contentPlaceholder,
+      });
+
+      const newPost = response.data;
+      setEntries((prevEntries) => [newPost, ...prevEntries]);
+      setPostPlaceholder("");
+      setContentPlaceholder("");
+    } catch (error) {
+      console.error("Erro ao criar post:", error);
+    }
   };
 
-  const handleEdit = (entryIndex) => {
-    const entryToEdit = entries[entryIndex];
-    setEditingEntry(entryToEdit);
-    setEditingEntryIndex(entryIndex);
+  const handleEdit = (entry) => {
+    setEditingEntry({ ...entry });
   };
 
-  const handleSaveEdit = () => {
-    const updatedEntries = [...entries];
-    updatedEntries[editingEntryIndex] = editingEntry;
-    setEntries(updatedEntries);
-    setEditingEntry({
-      post: "",
-      content: "",
-      createdAt: null,
-    });
-    setEditingEntryIndex(-1);
+  const handleSaveEdit = async () => {
+    try {
+      await axios.patch(`${API_URL}${editingEntry.id}/`, {
+        title: editingEntry.title,
+        content: editingEntry.content,
+      });
+      setEditingEntry(null);
+      fetchPosts();
+    } catch (error) {
+      console.error("Erro ao editar post:", error);
+    }
   };
 
   const handleDelete = (entry) => {
     setDeletingEntry(entry);
   };
 
-  const handleConfirmDelete = (entryToDelete) => {
-    const updatedEntries = entries.filter((entry) => entry !== entryToDelete);
-    setEntries(updatedEntries);
-    setDeletingEntry(null);
+  const handleConfirmDelete = async (entryToDelete) => {
+    try {
+      await axios.delete(`${API_URL}${entryToDelete.id}/`);
+      setDeletingEntry(null);
+      fetchPosts();
+    } catch (error) {
+      console.error("Erro ao deletar post:", error);
+    }
   };
 
-  const isPostOwner = (createdBy) => {
-    return createdBy === currentUser;
+  const isPostOwner = (username) => {
+    return username?.trim().toLowerCase() === currentUser?.trim().toLowerCase();
   };
 
+  const getMinutesPassed = (createdAt) => {
+    const now = new Date();
+    const created = new Date(createdAt);
+    const diffMs = now.getTime() - created.getTime();
+    const minutes = Math.max(0, Math.floor(diffMs / 60000));
+    return minutes;
+  };
 
   return (
     <body>
@@ -120,16 +124,17 @@ const Mainscreen = () => {
             Create
           </button>
         </div>
+
         <div className="entry-container">
           {entries.map((entry, index) => (
-            <div className="entry" key={index}>
+            <div className="entry" key={entry.id}>
               <div className="post-teste">
-                {`my ${words[index]} post at CodeLeap Network!`}
-                {isPostOwner(entry.createdBy) && (
+                {`my ${words[index % words.length]} post at CodeLeap Network!`}
+                {isPostOwner(entry.username) && (
                   <div className="entry-actions">
                     <button
                       className="buttom-edit"
-                      onClick={() => handleEdit(index)}
+                      onClick={() => handleEdit(entry)}
                     >
                       <BiEdit />
                     </button>
@@ -143,10 +148,11 @@ const Mainscreen = () => {
                 )}
               </div>
               <div className="postagem">
-                <p className="post-minute">
-                  {getMinutesPassed(entry.createdAt)} minutes ago
-                </p>
-                <h2>{entry.post}</h2>
+              <p className="post-minute">
+              <span className="username">@{entry.username}</span>
+              <span className="timestamp">{getMinutesPassed(entry.created_datetime)} minutes ago</span>
+              </p>
+                <h2>{entry.title}</h2>
                 <p>{entry.content}</p>
               </div>
             </div>
@@ -154,7 +160,7 @@ const Mainscreen = () => {
         </div>
       </div>
 
-      {editingEntryIndex !== -1 && (
+      {editingEntry && (
         <div className="modal">
           <div className="modal-content">
             <h2>Edit Item</h2>
@@ -162,31 +168,22 @@ const Mainscreen = () => {
             <input
               className="edit_placeholder"
               type="text"
-              placeholder="Hello World"
-              value={editingEntry.post}
+              value={editingEntry.title}
               onChange={(e) =>
-                setEditingEntry({
-                  ...editingEntry,
-                  post: e.target.value,
-                })
+                setEditingEntry({ ...editingEntry, title: e.target.value })
               }
             />
             <h3 className="content">Content</h3>
             <input
               className="edit_placeholder2"
-              placeholder="Content Here"
-              type="text"
               value={editingEntry.content}
               onChange={(e) =>
-                setEditingEntry({
-                  ...editingEntry,
-                  content: e.target.value,
-                })
+                setEditingEntry({ ...editingEntry, content: e.target.value })
               }
             />
             <button
               className="cancel-buttom"
-              onClick={() => setEditingEntryIndex(-1)}
+              onClick={() => setEditingEntry(null)}
             >
               Cancel
             </button>
