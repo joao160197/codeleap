@@ -128,6 +128,37 @@ header {
   margin-bottom: 8px;
 }
 
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+  gap: 8px;
+}
+
+.page-button {
+  background: white;
+  border: 1px solid #999;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s ease-in-out;
+}
+
+.page-button:hover {
+  background-color: #7695ec;
+  color: white;
+}
+
+.page-button.active {
+  background-color: #7695ec;
+  color: white;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+
 .MainScreen {
   display: grid;
   grid-template-rows: auto 1fr;
@@ -241,6 +272,31 @@ header {
   line-height: 20px;
   font-size: 20px;
 }
+
+.skeleton-header,
+.skeleton-line {
+  background-color: #eee;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+  margin-bottom: 10px;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+@keyframes pulse {
+  0% {
+    background-color: #eee;
+  }
+  50% {
+    background-color: #ddd;
+  }
+  100% {
+    background-color: #eee;
+  }
+}
+
 
 .post-section {
   background: #ffffff !important;
@@ -380,5 +436,4 @@ h2 {
 
   .create {
     margin-left: 10px;
-  }
-}
+  }}
